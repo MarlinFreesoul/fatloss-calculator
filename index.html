@@ -168,6 +168,42 @@
   .mrow .g small{font-size:11px;font-weight:300;color:var(--dim);margin-left:2px}
   .mrow .g em{display:block;font-style:normal;font-size:10.5px;color:var(--dim);text-align:right;font-weight:300;margin-top:2px}
   .macro-note{margin-top:14px;font-size:12px;color:var(--dim);line-height:1.65;padding-top:12px;border-top:1px solid var(--line)}
+  /* ---------- 目标模式 ---------- */
+  .modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .mode{
+    appearance:none;cursor:pointer;font-family:inherit;text-align:left;
+    background:#0e1112;border:1px solid var(--line);border-radius:2px;
+    padding:9px 11px 10px;color:var(--sub);transition:all .16s;min-width:0;
+  }
+  .mode:hover{border-color:var(--line-strong);color:var(--ink)}
+  .mode.on{border-color:rgba(155,179,166,.5);background:rgba(155,179,166,.09);color:var(--ink)}
+  .mode b{display:block;font-size:12.5px;font-weight:500;letter-spacing:.02em;white-space:nowrap}
+  .mode span{display:block;font-size:10.5px;color:var(--dim);margin-top:3px;line-height:1.3}
+  .mode.on span{color:var(--accent)}
+  @media (max-width:560px){.modes{grid-template-columns:1fr}}
+  .modenote{font-size:11.5px;color:var(--dim);line-height:1.6;margin:10px 0 16px}
+  .modenote b{color:var(--warm);font-weight:500}
+  /* ---------- 结构标签 ---------- */
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+  .tag{font-size:10.5px;letter-spacing:.03em;padding:2px 8px;border-radius:2px;
+    border:1px solid var(--line);color:var(--dim);background:#0e1112;font-variant-numeric:tabular-nums}
+  .tag.on{border-color:rgba(155,179,166,.45);color:var(--accent);background:rgba(155,179,166,.1)}
+  .tag.hot{border-color:rgba(194,160,106,.5);color:var(--warm);background:rgba(194,160,106,.1)}
+  /* ---------- 体成分 ---------- */
+  .bodycomp{display:flex;flex-wrap:wrap;gap:4px 24px;margin-top:12px;padding:10px 13px;background:#0e1112;border:1px solid var(--line);border-radius:2px}
+  .bc{font-size:11.5px;color:var(--dim);white-space:nowrap}
+  .bc b{color:var(--warm);font-weight:500;font-variant-numeric:tabular-nums;font-size:13px;margin:0 3px}
+  /* ---------- 体重轨迹 ---------- */
+  .traj{margin-top:14px;padding:13px 13px 9px;background:#0e1112;border:1px solid var(--line);border-radius:2px}
+  .traj .th{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+  .traj .th .t{font-size:11px;letter-spacing:.09em;color:var(--accent)}
+  .traj .th .n{margin-left:auto;font-size:10.5px;color:var(--dim)}
+  .traj svg{width:100%;height:auto;display:block;overflow:visible}
+  .tleg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:7px;font-size:10.5px;color:var(--dim)}
+  .tleg span{display:inline-flex;align-items:center;gap:5px}
+  .tleg i{display:block;width:13px;height:2px;border-radius:1px}
+  .tleg b{color:var(--sub);font-weight:500;font-variant-numeric:tabular-nums;margin-left:3px}
+  .twarn{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);font-size:10.5px;color:var(--warn);line-height:1.55}
   /* ---------- food table ---------- */
   .tw{overflow-x:auto;margin:0 -4px}
   table{width:100%;border-collapse:collapse;table-layout:fixed}
@@ -289,8 +325,8 @@
 
   <div class="kicker">Cut Calculator</div>
   <h1>生活化减脂计算器</h1>
-  <p class="lede">输入身体参数 → 得到<strong>基础代谢、总消耗、热量缺口</strong>；再按体重 × 运动量推算<strong>碳水 / 蛋白 / 脂肪</strong>；最后把每天真正吃进去的东西换算回来，看差多少。</p>
-  <p class="src">宏量系数取自抖音 @谭成义《三个月减脂计划》；BMR 用 Mifflin–St Jeor 公式；活动系数为通用取值。</p>
+  <p class="lede">输入身体参数，再选<strong>减脂 / 身体重组 / 低体脂增肌</strong>其中一档 → 得到基础代谢、总消耗、热量缺口与 12 周体重走向；按体重 × 运动量推算<strong>碳水 / 蛋白 / 脂肪</strong>；最后把每天真正吃进去的东西换算回来，看差多少。</p>
+  <p class="src">宏量系数取自抖音 @谭成义《三个月减脂计划》；BMR 用 Mifflin–St Jeor；体脂率按 Deurenberg 公式由 BMI 反推；活动系数为通用取值。</p>
 
   <div class="grid">
 
@@ -344,15 +380,19 @@
           <div class="m"><div class="k">BMI</div><div class="v" id="oBmi">—</div><div class="x" id="oBmiX">体重 / 身高²</div></div>
         </div>
         <div class="banner" id="defBanner"></div>
+        <div class="bodycomp" id="bodyComp"></div>
+        <div class="traj" id="trajBox"></div>
       </section>
 
       <section class="panel">
         <div class="ph"><span class="num">03</span><h2>三大营养素目标</h2><span class="hint" id="macroTier"></span></div>
 
-        <div class="swrow">
-          <button class="sw" id="swMuscle" type="button" aria-label="保肌优先"></button>
-          <div class="swlabel"><b>保肌优先</b>蛋白拉到 2.0 g/kg 起；总热量上升、缺口收窄，适合减脂期不想掉肌肉</div>
+        <div class="modes" id="modeSeg">
+          <button class="mode" type="button" data-m="cut"><b>减脂</b><span>缺口优先</span></button>
+          <button class="mode" type="button" data-m="recomp"><b>身体重组</b><span>体重平 · 体脂降</span></button>
+          <button class="mode" type="button" data-m="bulk"><b>低体脂增肌</b><span>小幅盈余</span></button>
         </div>
+        <p class="modenote" id="modeNote"></p>
 
         <div class="stackbar" id="stack"></div>
 
@@ -371,6 +411,8 @@
           <div class="f"><span id="fatPerKg">—</span> g/kg</div>
           <div class="g"><span id="oFat">—</span><small>g</small><em id="oFatK">—</em></div>
         </div>
+
+        <div class="tags" id="macroTags"></div>
 
         <div class="macro-note" id="macroNote"></div>
       </section>
@@ -491,7 +533,7 @@
   </div>
 
   <footer>
-    计算口径：BMR 采用 Mifflin–St Jeor；TDEE = BMR × 活动系数（按每周运动次数取 1.20–1.75）；宏量系数按视频四档运动量线性取值，最高档以上为外推。所有结果为估算，个体差异、训练强度、NEAT 都会影响实际消耗，请以 10 天体重与围度趋势为准。
+    计算口径：BMR 采用 Mifflin–St Jeor；TDEE = BMR × 活动系数（按每周运动次数取 1.20–1.75）；减脂档宏量沿用视频四档系数，最高档以上为外推；重组 / 增肌档按 TDEE 的 92% / 108% 反推碳水。体脂率由 Deurenberg 公式按 BMI 反推，肌肉量大的人会被高估、瘦体重会被低估，要更准得用皮脂钳或 DEXA。轨迹图为线性外推，实际减重会因 TDEE 随体重下降而逐渐放缓。所有结果均为估算，请以 10 天体重、围度与训练表现的趋势为准。
   </footer>
 </div>
 
@@ -517,8 +559,18 @@ const FOODS = [
   {id:'nut',  name:'混合坚果',   unit:'1 把 = 20g',  p:3.6,  c:3,    f:12,   qty:0, opt:true}
 ];
 
-const state = { g:'m', w:82, h:183, a:18, tier:'t5', muscle:false, foods:{} };
+const state = { g:'m', w:82, h:183, a:18, tier:'t5', mode:'cut', foods:{} };
 FOODS.forEach(f => state.foods[f.id] = f.qty);
+
+/* 三种目标的摄入策略
+   cut    ：沿用视频 g/kg 系数，缺口由方案自然产生
+   recomp ：摄入 = TDEE × 0.92，蛋白 2.2 / 脂肪 1.0，碳水吃剩余
+   bulk   ：摄入 = TDEE × 1.08，蛋白 2.0 / 脂肪 1.0，碳水吃剩余 */
+const MODES = {
+  cut:    {label:'减脂', ratio:null, p:null, f:null},
+  recomp: {label:'身体重组', ratio:0.92, p:2.2, f:1.0},
+  bulk:   {label:'低体脂增肌', ratio:1.08, p:2.0, f:1.0}
+};
 
 /* ================= 工具 ================= */
 const $ = id => document.getElementById(id);
@@ -561,6 +613,102 @@ function renderCoef(){
   }).join('');
 }
 
+/* ================= 体重轨迹 ================= */
+function trajHTML(r){
+  const W = 344, H = 104, padL = 30, padR = 10, padT = 12, padB = 22;
+  const pw = W - padL - padR, phh = H - padT - padB;
+  const weeks = 12;
+
+  const coef = state.g === 'm' ? r.tier.m : r.tier.f;
+  const gAdd = state.g === 'm' ? 5 : -161;
+
+  /* 每 2 周一格，用当时体重重算 TDEE 与摄入，所以越减越慢 */
+  function sim(mode){
+    let w = r.w;
+    const pts = [w];
+    for (let t = 0; t < weeks; t += 2){
+      const bmrT = 10*w + 6.25*r.h - 5*r.a + gAdd;
+      const tdeeT = bmrT * r.tier.af;
+      let intakeT;
+      if (mode === 'cut')        intakeT = (coef.c*4 + coef.p*4 + coef.f*9) * w;
+      else if (mode === 'recomp') intakeT = tdeeT * 0.92;
+      else                        intakeT = tdeeT * 1.08;
+      w += -(tdeeT - intakeT)*7/7700 * 2;
+      if (w < 25) w = 25;
+      pts.push(w);
+    }
+    return pts;
+  }
+
+  const modes = [
+    {id:'cut',    label:'减脂', color:'#9bb3a6'},
+    {id:'recomp', label:'重组', color:'#d8cbb8'},
+    {id:'bulk',   label:'增肌', color:'#9aa7b4'}
+  ];
+  modes.forEach(m => { m.pts = sim(m.id); m.end = m.pts[m.pts.length-1]; });
+
+  const vals = [].concat.apply([], modes.map(m => m.pts));
+  let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  const vpad = Math.max(1.0, (hi-lo)*0.26);
+  lo -= vpad; hi += vpad;
+  const span = (hi - lo) || 1;
+
+  const X = t => padL + (t/weeks)*pw;
+  const Y = v => padT + (hi-v)/span*phh;
+
+  let grid = '';
+  [0, .5, 1].forEach(f => {
+    const y = Y(lo + span*f);
+    grid += '<line x1="' + padL + '" y1="' + y + '" x2="' + (padL+pw) + '" y2="' + y + '" stroke="rgba(255,255,255,.07)" stroke-width="1"/>';
+    grid += '<text x="' + (padL-5) + '" y="' + (y+3.5) + '" text-anchor="end" font-size="9" fill="#666c72">' + (lo+span*f).toFixed(0) + '</text>';
+  });
+
+  const y0 = Y(r.w);
+  grid += '<line x1="' + padL + '" y1="' + y0 + '" x2="' + (padL+pw) + '" y2="' + y0 + '" stroke="rgba(155,179,166,.3)" stroke-width="1" stroke-dasharray="3 3"/>';
+
+  let lines = '';
+  modes.forEach(m => {
+    const on = m.id === state.mode;
+    const d = m.pts.map((v,i) => (i ? 'L' : 'M') + X(i*2).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ');
+    lines += '<path d="' + d + '" fill="none" stroke="' + m.color + '" stroke-width="' + (on?2.2:1.2) + '" stroke-opacity="' + (on?1:.4) + '" stroke-linecap="round" stroke-linejoin="round"/>';
+    if (on){
+      lines += '<circle cx="' + X(weeks) + '" cy="' + Y(m.end) + '" r="3" fill="' + m.color + '"/>';
+    }
+  });
+
+  let xaxis = '';
+  [0,6,12].forEach(t => {
+    xaxis += '<text x="' + X(t) + '" y="' + (H-5) + '" text-anchor="' + (t===0?'start':(t===12?'end':'middle')) + '" font-size="9" fill="#666c72">' + (t===0?'今天':t+' 周') + '</text>';
+  });
+
+  const leg = '<div class="tleg">' + modes.map(m => {
+    const dW = m.end - r.w;
+    return '<span><i style="background:' + m.color + (m.id===state.mode?'':' ;opacity:.45') + '"></i>' + m.label +
+      '<b>' + (dW>=0?'+':'') + dW.toFixed(1) + ' kg</b></span>';
+  }).join('') + '</div>';
+
+  /* g/kg 系数的陷阱：体重越轻，缺口反而越大 */
+  const cutLossPct = (r.w - modes[0].end) / r.w;
+  const warn = (state.mode === 'cut' && cutLossPct > 0.08)
+    ? '<div class="twarn">按 g/kg 系数原样吃，体重每降 1 kg，摄入降约 30 kcal、消耗只降约 17 kcal，缺口会自己变大。每 10 天重算时若缺口已超过 TDEE 的 22%，把碳水加回去。</div>'
+    : '';
+
+  return '<div class="th"><span class="t">12 周体重轨迹</span><span class="n">按体重逐步重算消耗与摄入</span></div>' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="12 周体重轨迹">' +
+    grid + lines + xaxis + '</svg>' + leg + warn;
+}
+
+/* ================= 模式说明 ================= */
+function modeNoteHTML(r){
+  if (state.mode === 'recomp'){
+    return '<b>身体重组</b>：摄入固定为维持热量的 92%（' + nf(r.intake) + ' kcal），体重基本不动，脂肪降、肌肉留住。适合体脂已不高、又不想先胖一轮再减的人。速度慢，8–12 周才看得出围度变化，秤不会有反馈。';
+  }
+  if (state.mode === 'bulk'){
+    return '<b>低体脂增肌</b>：摄入为维持热量的 108%（' + nf(r.intake) + ' kcal），周增控制在体重的 0.25–0.5%。体重一定上升——这是长肌肉的必要条件；想尽量少带脂肪，就压住涨幅、把训练强度顶上去。';
+  }
+  return '<b>减脂</b>：直接沿用视频的 g/kg 系数，缺口由碳水档位自然产生。想更快就减碳水或把这档当日常消耗，想保肌就切重组或增肌档。';
+}
+
 /* ================= 计算 ================= */
 function calc(){
   const w = clamp(+state.w, 30, 220);
@@ -568,19 +716,31 @@ function calc(){
   const a = clamp(+state.a, 12, 90);
   const tier = TIERS.find(t => t.id === state.tier) || TIERS[3];
   const coef = state.g === 'm' ? tier.m : tier.f;
+  const m = MODES[state.mode] || MODES.cut;
 
   const bmr = 10*w + 6.25*h - 5*a + (state.g === 'm' ? 5 : -161);
   const tdee = bmr * tier.af;
 
-  let carb = coef.c * w;
-  let prot = coef.p * w;
-  let fat  = coef.f * w;
-
-  if (state.muscle) prot = Math.max(prot, 2.0 * w);
+  let carb, prot, fat, floored = false;
+  if (m.ratio === null){
+    carb = coef.c*w; prot = coef.p*w; fat = coef.f*w;
+  } else {
+    prot = m.p * w;
+    fat  = m.f * w;
+    carb = (tdee*m.ratio - prot*4 - fat*9) / 4;
+    const floor = 1.5 * w;
+    if (carb < floor){ carb = floor; floored = true; }
+  }
 
   const kcalC = carb*4, kcalP = prot*4, kcalF = fat*9;
   const intake = kcalC + kcalP + kcalF;
   const def = tdee - intake;
+  const cutDef = tdee - (coef.c*4 + coef.p*4 + coef.f*9)*w;
+
+  /* 体成分估算：Deurenberg 1991，按 BMI 反推 */
+  const bmi = w / Math.pow(h/100, 2);
+  const bf = clamp(1.20*bmi + 0.23*a - 10.8*(state.g==='m'?1:0) - 5.4, 3, 55);
+  const lbm = w * (1 - bf/100);
 
   /* 食物合计 */
   let fp=0, fc=0, ff=0;
@@ -590,7 +750,8 @@ function calc(){
   });
   const foodK = fp*4 + fc*4 + ff*9;
 
-  return {w,h,a,tier,bmr,tdee,carb,prot,fat,kcalC,kcalP,kcalF,intake,def,fp,fc,ff,foodK,
+  return {w,h,a,tier,bmr,tdee,carb,prot,fat,kcalC,kcalP,kcalF,intake,def,cutDef,fp,fc,ff,foodK,
+          bmi,bf,lbm,floored,
           carbPct: intake? kcalC/intake:0, protPct: intake? kcalP/intake:0, fatPct: intake? kcalF/intake:0};
 }
 
@@ -614,20 +775,30 @@ function render(){
   const loss = r.def*7/7700;
   $('oLoss').innerHTML = (loss>=0? nf(loss,2): '0') + '<small>kg</small>';
 
-  const bmi = r.w/Math.pow(r.h/100,2);
-  $('oBmi').textContent = nf(bmi,1);
+  $('oBmi').textContent = nf(r.bmi,1);
 
   $('oBmrX').textContent = state.g==='m' ? '10w+6.25h−5a+5' : '10w+6.25h−5a−161';
   $('oTdeeX').textContent = 'BMR × ' + r.tier.af.toFixed(3) + '（' + r.tier.label + '）';
   $('oIntakeX').textContent = 'C' + nf(r.carb) + ' P' + nf(r.prot) + ' F' + nf(r.fat);
-  $('oDefX').textContent = r.def>=0 ? '目标 300–500 kcal' : '热量盈余，不利于减脂';
-  $('oBmiX').textContent = bmi<18.5?'偏低':(bmi<24?'正常范围':(bmi<28?'偏高':'偏高较多'));
+  $('oDefX').textContent = state.mode==='cut' ? '目标 300–500 kcal'
+                          : (state.mode==='recomp' ? '设定：摄入 −8%' : '设定：盈余 +8%');
+  $('oBmiX').textContent = r.bmi<18.5?'偏低':(r.bmi<24?'正常范围':(r.bmi<28?'偏高':'偏高较多'));
 
-  /* 缺口判读：按占 TDEE 的比例 */
+  /* 缺口判读：按目标模式分流 */
   const ratio = r.tdee ? r.def / r.tdee : 0;
   let banner = '', color = 'var(--accent)';
-  if (r.def < 0){
-    banner = '<b>当前方案是盈余 ' + nf(Math.abs(r.def)) + ' kcal。</b>碳水或运动量给得偏大，减脂期一般不需要盈余；想掉脂就把碳水往下调 30–60 g。';
+
+  if (state.mode === 'bulk'){
+    const gain = Math.abs(r.def) * 7 / 7700;
+    banner = '<b>盈余 ' + nf(Math.abs(r.def)) + ' kcal（占消耗 ' + nf(Math.abs(ratio)*100,1) + '%）。</b>'
+      + '每周约涨 ' + nf(gain,2) + ' kg。这是低体脂增肌的窄区间：新手期或训练到位时肌肉占比高，但周增一旦超过体重的 0.5%，多出来的基本都是脂肪。秤往上是设计内的，不是失控。';
+    color = 'var(--warm)';
+  } else if (state.mode === 'recomp'){
+    banner = '<b>摄入比维持低 ' + nf(Math.abs(r.def)) + ' kcal（占消耗 ' + nf(Math.abs(ratio)*100,1) + '%），处于身体重组区间。</b>'
+      + '12 周体重预计变化只有 ' + nf(Math.abs(r.def)*7/7700*12,1) + ' kg 量级，秤上几乎不动；脂肪下降靠训练刺激加高蛋白把肌肉留住。看腰围、照片、力量，不看秤。';
+    color = 'var(--good)';
+  } else if (r.def < 0){
+    banner = '<b>当前方案是盈余 ' + nf(Math.abs(r.def)) + ' kcal。</b>碳水或运动量给得偏大，减脂档一般不需要盈余；想掉脂就切到重组，或把碳水往下调 30–60 g。';
     color = 'var(--bad)';
   } else if (ratio < 0.08){
     banner = '<b>缺口 ' + nf(r.def) + ' kcal（占消耗 ' + nf(ratio*100,1) + '%），偏保守。</b>接近维持热量，属于身体重组区间：脂肪掉得慢，但训练表现和肌肉最安全。';
@@ -642,8 +813,18 @@ function render(){
     banner = '<b>缺口 ' + nf(r.def) + ' kcal（占消耗 ' + nf(ratio*100,1) + '%），偏激进。</b>瘦体重流失风险明显上升，力量的下降会比体重下降更早出现。建议把碳水加回 40–80 g，或把这档运动量当成日常而非额外训练。';
     color = 'var(--bad)';
   }
+  if (r.floored) banner += '<br><span style="color:var(--warn)">碳水已触 1.5 g/kg 下限，实际摄入高于设定，缺口因此被拉大。</span>';
   $('defBanner').innerHTML = banner;
   $('defBanner').style.borderLeftColor = color;
+
+  /* 体成分估算 */
+  $('bodyComp').innerHTML =
+    '<div class="bc">体脂率 <b>' + nf(r.bf,1) + '%</b></div>' +
+    '<div class="bc">瘦体重 <b>' + nf(r.lbm,1) + 'kg</b></div>' +
+    '<div class="bc">蛋白 / 瘦体重 <b>' + (r.prot/r.lbm).toFixed(2) + 'g/kg</b></div>';
+
+  /* 12 周体重轨迹 */
+  $('trajBox').innerHTML = trajHTML(r);
 
   /* 宏量 */
   $('macroTier').textContent = r.tier.label + (r.tier.extra ? '（外推档）' : '');
@@ -664,12 +845,25 @@ function render(){
 
   /* 宏量提示 */
   const notes = [];
-  if (state.muscle) notes.push('已切到保肌模式：蛋白 ' + (r.prot/w).toFixed(2) + ' g/kg，比视频原方案高 ' + nf(r.prot - (state.g==='m'?r.tier.m.p:r.tier.f.p)*w) + ' g，缺口因此收窄。');
-  if ((r.prot/w) < 1.85) notes.push('当前蛋白 ' + (r.prot/w).toFixed(2) + ' g/kg，对减脂期保肌偏保守。常见区间 1.8–2.2 g/kg；想更稳，可用蛋白粉或鸡胸补到 2.0。');
-  if ((r.fat/w) < 0.8) notes.push('脂肪低于 0.8 g/kg，长期会压制睾酮与激素合成，建议守住底线。');
+  const pKg = r.prot/w, fKg = r.fat/w;
+  if (state.mode === 'recomp') notes.push('重组档：蛋白固定在 2.2 g/kg（' + nf(r.prot) + ' g），脂肪 1.0 g/kg，剩余热量全部给碳水——这就是“高碳 + 高蛋白 + 脂肪不越线”的配法。');
+  if (state.mode === 'bulk') notes.push('增肌档：蛋白 2.0 g/kg（' + nf(r.prot) + ' g）已经覆盖合成需求，再加不会长更快，只会多花热量。');
+  if (pKg < 1.85) notes.push('当前蛋白 ' + pKg.toFixed(2) + ' g/kg，对减脂期保肌偏保守。常见区间 1.8–2.2 g/kg；想更稳，可用蛋白粉或鸡胸补到 2.0。');
+  if (fKg < 0.8) notes.push('脂肪低于 0.8 g/kg，长期会压制睾酮与激素合成，建议守住底线。');
   if (r.fatPct*100 > 35) notes.push('脂肪供能占比超过 35%，碳水被挤占，力量训练日的糖原会不够。');
   if (!notes.length) notes.push('三项配比正常：碳水供能主导、蛋白达标、脂肪在 0.8 g/kg 以上。');
   $('macroNote').innerHTML = notes.join('<br>');
+
+  /* 宏量结构判定 */
+  const cR = r.carbPct;
+  const cT = cR >= 0.5 ? '高碳' : (cR >= 0.4 ? '中碳' : '低碳');
+  const pT = pKg >= 1.795 ? '高蛋白' : (pKg >= 1.5 ? '蛋白适中' : '蛋白不足');
+  const fT = fKg >= 1.2 ? '脂肪偏高' : (fKg >= 0.8 ? '脂肪适中' : '低脂');
+  $('macroTags').innerHTML =
+    '<span class="tag ' + (cR>=0.5?'on':'') + '">' + cT + ' ' + nf(cR*100) + '%</span>' +
+    '<span class="tag ' + (pKg>=1.8?'on':'') + '">' + pT + ' ' + pKg.toFixed(2) + ' g/kg</span>' +
+    '<span class="tag ' + (fKg<0.8?'on':'') + '">' + fT + ' ' + fKg.toFixed(1) + ' g/kg</span>' +
+    '<span class="tag">蛋白 / 瘦体重 ' + (r.prot/r.lbm).toFixed(2) + '</span>';
 
   /* 食物行 */
   FOODS.forEach(f => {
@@ -700,6 +894,7 @@ function render(){
   /* 差额建议 */
   $('gapBox').innerHTML = gapHTML(r);
 
+  $('modeNote').innerHTML = modeNoteHTML(r);
   renderCoef();
   saveState();
 }
@@ -771,9 +966,11 @@ $('tiers').addEventListener('click', e => {
   });
 });
 
-$('swMuscle').addEventListener('click', () => {
-  state.muscle = !state.muscle;
-  $('swMuscle').classList.toggle('on', state.muscle);
+$('modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-m]');
+  if (!b) return;
+  state.mode = b.dataset.m;
+  [...$('modeSeg').children].forEach(x => x.classList.toggle('on', x === b));
   render();
 });
 
@@ -808,7 +1005,8 @@ function loadState(){
     if (isFinite(+s.h)) state.h = +s.h;
     if (isFinite(+s.a)) state.a = +s.a;
     if (TIERS.some(t => t.id === s.tier)) state.tier = s.tier;
-    state.muscle = !!s.muscle;
+    if (['cut','recomp','bulk'].indexOf(s.mode) >= 0) state.mode = s.mode;
+    else if (s.muscle) state.mode = 'recomp';
     if (s.foods) FOODS.forEach(f => { if (isFinite(+s.foods[f.id])) state.foods[f.id] = clamp(+s.foods[f.id],0,30); });
   }catch(err){}
 }
@@ -821,7 +1019,7 @@ $('inW').value = state.w;
 $('inH').value = state.h;
 $('inA').value = state.a;
 [...$('genderSeg').children].forEach(x => x.classList.toggle('on', x.dataset.g === state.g));
-$('swMuscle').classList.toggle('on', state.muscle);
+[...$('modeSeg').children].forEach(x => x.classList.toggle('on', x.dataset.m === state.mode));
 render();
 </script>
 </body>
