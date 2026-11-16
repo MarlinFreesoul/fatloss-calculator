@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生活化减脂计算器</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23121517'/%3E%3Cpath d='M9 21c0-7 6-11 6-11s6 4 6 11' fill='none' stroke='%239bb3a6' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='21' r='2.4' fill='%23d8cbb8'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#0b0d0e;
+    --surface:#131618;
+    --surface2:#171b1d;
+    --line:rgba(255,255,255,.085);
+    --line-strong:rgba(255,255,255,.16);
+    --ink:#e8e5df;
+    --sub:#8f959b;
+    --dim:#666c72;
+    --accent:#9bb3a6;
+    --accent-dim:rgba(155,179,166,.15);
+    --warm:#d8cbb8;
+    --good:#8fae9a;
+    --warn:#c2a06a;
+    --bad:#bd7d6b;
+    --carb:#a8b4a0;
+    --prot:#c9b79c;
+    --fat:#9aa7b4;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 82% -10%, rgba(155,179,166,.07), transparent 65%),
+      radial-gradient(700px 400px at 0% 100%, rgba(201,183,156,.05), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-weight:400;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:44px 24px 72px}
+  /* ---------- header ---------- */
+  .kicker{
+    display:flex;align-items:center;gap:10px;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);font-weight:500;margin-bottom:18px;
+  }
+  .kicker::before{content:"";width:26px;height:1px;background:var(--accent);opacity:.6}
+  h1{
+    margin:0 0 12px;font-size:clamp(28px,4.2vw,42px);font-weight:700;
+    letter-spacing:-.015em;line-height:1.2;
+  }
+  .lede{margin:0;color:var(--sub);max-width:62ch;font-size:14.5px}
+  .lede strong{color:var(--warm);font-weight:500}
+  .src{
+    margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+    color:var(--dim);font-size:12px;letter-spacing:.01em;
+  }
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:minmax(0,368px) minmax(0,1fr);gap:18px;margin-top:30px;align-items:start}
+  .col-l{position:sticky;top:20px}
+  .col-r{display:flex;flex-direction:column;gap:18px;min-width:0}
+  @media (max-width:980px){
+    .grid{grid-template-columns:minmax(0,1fr)}
+    .col-l{position:static}
+    .wrap{padding:32px 18px 56px}
+  }
+  @media (min-width:981px) and (max-height:840px){
+    .col-l{position:static}
+  }
+  /* ---------- panel ---------- */
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,0) 40%), var(--surface);
+    border:1px solid var(--line);border-radius:3px;padding:20px 22px;
+  }
+  .ph{display:flex;align-items:baseline;gap:11px;margin-bottom:18px}
+  .ph .num{
+    font-size:10px;letter-spacing:.14em;color:var(--accent);
+    font-variant-numeric:tabular-nums;border:1px solid var(--accent-dim);
+    padding:1px 5px;border-radius:2px;align-self:center;
+  }
+  .ph h2{margin:0;font-size:14.5px;font-weight:500;letter-spacing:.03em}
+  .ph .hint{margin-left:auto;font-size:11.5px;color:var(--dim);font-weight:300}
+  /* ---------- fields ---------- */
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field label{
+    display:flex;align-items:baseline;gap:6px;margin-bottom:7px;
+    font-size:11.5px;color:var(--sub);letter-spacing:.06em;
+  }
+  .field label .u{color:var(--dim);font-size:10.5px;font-weight:300}
+  .ctrl{position:relative}
+  .ctrl input{
+    width:100%;background:#0e1112;border:1px solid var(--line);border-radius:2px;
+    color:var(--ink);font-family:inherit;font-size:16px;font-weight:500;
+    font-variant-numeric:tabular-nums;padding:10px 44px 10px 12px;
+    outline:none;transition:border-color .16s, background .16s;
+    -moz-appearance:textfield;
+  }
+  .ctrl input::-webkit-outer-spin-button,.ctrl input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .ctrl input:focus{border-color:rgba(155,179,166,.55);background:#111516}
+  .ctrl .suffix{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    font-size:11px;color:var(--dim);pointer-events:none;letter-spacing:.04em;
+  }
+  /* segmented */
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:#0e1112}
+  .seg button{
+    appearance:none;border:0;background:transparent;color:var(--sub);
+    font-family:inherit;font-size:13.5px;padding:10px 6px;cursor:pointer;
+    transition:background .16s,color .16s;
+  }
+  .seg button + button{border-left:1px solid var(--line)}
+  .seg button.on{background:rgba(155,179,166,.13);color:var(--warm);font-weight:500}
+  .seg button:hover{color:var(--ink)}
+  /* tiers */
+  .tiers{display:grid;grid-template-columns:1fr;gap:6px}
+  .tier{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    appearance:none;cursor:pointer;font-family:inherit;
+    background:#0e1112;border:1px solid var(--line);border-radius:2px;
+    padding:9px 12px;color:var(--sub);transition:all .16s;
+  }
+  .tier:hover{border-color:var(--line-strong);color:var(--ink)}
+  .tier.on{border-color:rgba(155,179,166,.5);background:rgba(155,179,166,.09);color:var(--ink)}
+  .tier .dot{width:5px;height:5px;flex:0 0 5px;border-radius:50%;background:var(--dim)}
+  .tier.on .dot{background:var(--accent);box-shadow:0 0 0 3px rgba(155,179,166,.14)}
+  .tier .t{font-size:13px;font-weight:400}
+  .tier .s{margin-left:auto;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .tier.on .s{color:var(--accent)}
+  /* ---------- metrics ---------- */
+  .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  .m{background:var(--surface);padding:16px 14px 14px}
+  .m .k{font-size:10.5px;letter-spacing:.1em;color:var(--dim);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .m .v{font-size:26px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+  .m .v small{font-size:11px;font-weight:300;color:var(--sub);letter-spacing:.02em;margin-left:3px}
+  .m .x{font-size:11px;color:var(--dim);margin-top:5px;font-variant-numeric:tabular-nums}
+  .m.hl .v{color:var(--warm)}
+  .metrics.flash .m{animation:mflash .4s ease}
+  @keyframes mflash{0%{background:rgba(155,179,166,.13)}100%{background:var(--surface)}}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--accent);letter-spacing:.08em}
+  .live i{width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(143,174,154,.5);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(143,174,154,.45)}70%{box-shadow:0 0 0 7px rgba(143,174,154,0)}100%{box-shadow:0 0 0 0 rgba(143,174,154,0)}}
+  @media (max-width:640px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .banner{
+    margin-top:14px;padding:11px 14px;border-left:2px solid var(--accent);
+    background:rgba(155,179,166,.055);font-size:12.5px;color:var(--sub);line-height:1.6;
+  }
+  .banner b{color:var(--ink);font-weight:500}
+  /* ---------- macros ---------- */
+  .swrow{display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:16px;background:#0e1112;border:1px solid var(--line);border-radius:2px}
+  .sw{position:relative;width:34px;height:19px;flex:0 0 34px;border-radius:10px;background:#22282a;border:1px solid var(--line-strong);cursor:pointer;transition:background .18s}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#767c82;transition:transform .18s,background .18s}
+  .sw.on{background:rgba(155,179,166,.28);border-color:rgba(155,179,166,.55)}
+  .sw.on::after{transform:translateX(15px);background:var(--warm)}
+  .swlabel{font-size:12.5px;color:var(--sub);line-height:1.45}
+  .swlabel b{display:block;color:var(--ink);font-weight:500;font-size:12.5px;margin-bottom:1px}
+  .stackbar{display:flex;height:9px;border-radius:1px;overflow:hidden;background:#0e1112;margin:2px 0 18px}
+  .stackbar span{height:100%;transition:width .3s ease}
+  .mrow{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .mrow:last-of-type{border-bottom:0}
+  .mrow .n{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--sub)}
+  .mrow .n i{width:7px;height:7px;border-radius:1px;display:inline-block;flex:0 0 7px}
+  .mrow .f{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .mrow .g{font-size:17px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .mrow .g small{font-size:11px;font-weight:300;color:var(--dim);margin-left:2px}
+  .mrow .g em{display:block;font-style:normal;font-size:10.5px;color:var(--dim);text-align:right;font-weight:300;margin-top:2px}
+  .macro-note{margin-top:14px;font-size:12px;color:var(--dim);line-height:1.65;padding-top:12px;border-top:1px solid var(--line)}
+  /* ---------- food table ---------- */
+  .tw{overflow-x:auto;margin:0 -4px}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th,td{padding:9px 8px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid rgba(255,255,255,.055)}
+  th{font-size:10.5px;font-weight:400;color:var(--dim);letter-spacing:.08em;white-space:nowrap}
+  td{font-size:12.5px;color:var(--sub)}
+  th:first-child,td:first-child{text-align:left;padding-left:4px}
+  th:nth-child(2),td:nth-child(2){text-align:left}
+  .fname{color:var(--ink);font-size:13px;font-weight:400;line-height:1.35}
+  .fname span{display:block;font-size:10.5px;color:var(--dim);font-weight:300;margin-top:1px}
+  .qtybox{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:2px;background:#0e1112;overflow:hidden}
+  .qtybox button{
+    appearance:none;border:0;background:transparent;color:var(--dim);width:22px;height:26px;
+    font-size:13px;cursor:pointer;font-family:inherit;line-height:1;
+  }
+  .qtybox button:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+  .qtybox input{
+    width:32px;border:0;background:transparent;color:var(--ink);text-align:center;
+    font-family:inherit;font-size:12.5px;font-variant-numeric:tabular-nums;outline:none;
+    -moz-appearance:textfield;
+  }
+  .qtybox input::-webkit-outer-spin-button,.qtybox input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .zero td{opacity:.42}
+  tfoot td{border-bottom:0;border-top:1px solid var(--line-strong);color:var(--warm);font-size:13px;font-weight:500;padding-top:12px}
+  .colc{width:24%}.colu{width:20%}.colq{width:14%}.colp{width:13%}.colcb{width:13%}.colf{width:16%}
+  .footnote{margin-top:12px;font-size:11.5px;color:var(--dim);line-height:1.6}
+  /* comparison */
+  .cmp{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
+  .cmprow{display:grid;grid-template-columns:70px 1fr 88px;gap:12px;align-items:center;margin-bottom:11px}
+  .cmprow .cl{font-size:12px;color:var(--sub)}
+  .cmpbar{position:relative;height:6px;background:rgba(255,255,255,.07);border-radius:1px;overflow:hidden}
+  .cmpbar i{position:absolute;top:0;left:0;height:100%;display:block;transition:width .3s ease}
+  .cmpbar .tick{position:absolute;top:-3px;bottom:-3px;width:1px;background:rgba(255,255,255,.3)}
+  .cmprow .cv{font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--sub)}
+  .cmprow .cv b{font-weight:500}
+  .gapbox{margin-top:14px;padding:13px 15px;background:#0e1112;border:1px solid var(--line);border-left:2px solid var(--warm);font-size:12.5px;line-height:1.75;color:var(--sub)}
+  .gapbox .gt{color:var(--warm);font-size:11px;letter-spacing:.1em;margin-bottom:6px}
+  .gapbox div + div{margin-top:3px}
+  .gapbox strong{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+  /* ---------- supplements ---------- */
+  .sgroup + .sgroup{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  .sgroup .gt{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.1em;color:var(--dim);margin-bottom:11px}
+  .sgroup .gt i{width:5px;height:5px;border-radius:50%;background:var(--good);flex:0 0 5px}
+  .sgroup.later .gt i{background:var(--dim)}
+  .srow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;padding:8px 0;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.04)}
+  .srow:last-child{border-bottom:0}
+  .srow .nm{font-size:13px;color:var(--ink)}
+  .srow .nm span{font-size:10.5px;color:var(--dim);margin-left:6px}
+  .srow .ds{font-size:12.5px;color:var(--warm);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .srow .tm{font-size:11px;color:var(--dim);white-space:nowrap;text-align:right;min-width:74px}
+  @media (max-width:520px){
+    .srow{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+    .srow .tm{grid-column:1 / -1;text-align:left;min-width:0}
+  }
+  .snote{margin-top:14px;font-size:11px;color:var(--dim);line-height:1.7}
+  /* ---------- rules ---------- */
+  details{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+  details summary{cursor:pointer;font-size:12px;color:var(--accent);list-style:none;letter-spacing:.04em}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"+ ";color:var(--dim)}
+  details[open] summary::before{content:"− "}
+  .rules{font-size:12px;color:var(--sub);line-height:1.85;margin-top:12px}
+  .rules b{color:var(--ink);font-weight:500}
+  .rules ol{margin:0;padding-left:18px}
+  .rules li{margin-bottom:5px}
+  /* footer */
+  footer{margin-top:38px;padding-top:18px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);line-height:1.8}
+
+  /* 系数速查 */
+  .coef{margin-top:0}
+  .coef .hint{color:var(--accent)}
+  .cotab{width:100%;border-collapse:collapse;table-layout:fixed}
+  .cotab col{}
+  .cotab th{font-size:10px;color:var(--dim);letter-spacing:.06em;padding:0 2px 7px;text-align:right;border-bottom:1px solid var(--line)}
+  .cotab th:first-child{text-align:left}
+  .cotab td{font-size:11.5px;padding:7px 2px;text-align:right;color:var(--sub);border-bottom:1px solid rgba(255,255,255,.04);font-variant-numeric:tabular-nums}
+  .cotab td:first-child{text-align:left;color:var(--ink);font-size:11.5px}
+  .cotab tr.on td{color:var(--warm);background:rgba(155,179,166,.07)}
+  .cotab tr.on td:first-child{color:var(--warm)}
+  .cotab-note{margin-top:10px;font-size:11px;color:var(--dim);line-height:1.6}
+  .coefwrap{display:block}
+  .coefside{display:grid;grid-template-columns:1fr 1fr;gap:0 34px;border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+  .csblock{font-size:12px;color:var(--sub);line-height:1.75}
+  .cs-t{font-size:11px;letter-spacing:.08em;color:var(--accent);margin:0 0 6px}
+  .csblock p{margin:0}
+  @media (max-width:640px){
+    .coefside{grid-template-columns:minmax(0,1fr);gap:14px}
+  }
+
+  /* ---------- 手机端：食物表转为卡片 ---------- */
+  @media (max-width:640px){
+    #foodTable{display:block;width:100%}
+    #foodTable thead{display:none}
+    #foodTable tbody,#foodTable tfoot{display:block}
+    #foodTable tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:2px;
+       padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.06)}
+    #foodTable tfoot tr{border-bottom:0;border-top:1px solid var(--line-strong);padding-top:11px}
+    #foodTable td{border:0;padding:0 !important;text-align:left !important;font-size:12px}
+    #foodTable td:nth-child(1){order:1;flex:1 1 50%;min-width:0}
+    #foodTable td:nth-child(3){order:2;margin-left:auto}
+    #foodTable td:nth-child(2){order:3;flex:1 0 100%;font-size:10.5px;color:var(--dim)}
+    #foodTable td:nth-child(4){order:4;margin-top:4px}
+    #foodTable td:nth-child(5){order:5;margin-top:4px}
+    #foodTable td:nth-child(6){order:6;margin-top:4px}
+    #foodTable td:nth-child(4)::before{content:"蛋白 ";color:var(--dim);font-size:10px}
+    #foodTable td:nth-child(5)::before{content:"碳水 ";color:var(--dim);font-size:10px}
+    #foodTable td:nth-child(6)::before{content:"脂肪 ";color:var(--dim);font-size:10px}
+    #foodTable tfoot td:nth-child(1){flex:0 0 auto}
+    #foodTable tfoot td:nth-child(2){display:none}
+    .qtybox button{width:20px;height:24px}
+    .qtybox input{width:28px;font-size:12px}
+    .metrics .m .v{font-size:22px}
+    .cmprow{grid-template-columns:56px 1fr 78px;gap:9px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Cut Calculator</div>
+  <h1>生活化减脂计算器</h1>
+  <p class="lede">输入身体参数 → 得到<strong>基础代谢、总消耗、热量缺口</strong>；再按体重 × 运动量推算<strong>碳水 / 蛋白 / 脂肪</strong>；最后把每天真正吃进去的东西换算回来，看差多少。</p>
+  <p class="src">宏量系数取自抖音 @谭成义《三个月减脂计划》；BMR 用 Mifflin–St Jeor 公式；活动系数为通用取值。</p>
+
+  <div class="grid">
+
+    <!-- ===== 左：参数 ===== -->
+    <div class="col-l">
+      <section class="panel">
+        <div class="ph"><span class="num">01</span><h2>身体参数</h2></div>
+
+        <div class="field">
+          <label>性别</label>
+          <div class="seg" id="genderSeg">
+            <button type="button" data-g="m" class="on">男</button>
+            <button type="button" data-g="f">女</button>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>体重 <span class="u">kg</span></label>
+            <div class="ctrl"><input type="number" id="inW" value="82" min="30" max="220" step="0.1"><span class="suffix">kg</span></div>
+          </div>
+          <div class="field">
+            <label>身高 <span class="u">cm</span></label>
+            <div class="ctrl"><input type="number" id="inH" value="183" min="120" max="230" step="1"><span class="suffix">cm</span></div>
+          </div>
+        </div>
+
+        <div class="field" style="max-width:calc(50% - 6px)">
+          <label>年龄 <span class="u">岁</span></label>
+          <div class="ctrl"><input type="number" id="inA" value="18" min="12" max="90" step="1"><span class="suffix">岁</span></div>
+        </div>
+
+        <div class="field" style="margin-bottom:0">
+          <label>每周运动频率 <span class="u">选最接近的一档</span></label>
+          <div class="tiers" id="tiers"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===== 右：结果 ===== -->
+    <div class="col-r">
+
+      <section class="panel">
+        <div class="ph"><span class="num">02</span><h2>能量与缺口</h2><span class="live"><i></i>实时计算</span><span class="hint" id="bmrFormula"></span></div>
+        <div class="metrics" id="energyMetrics">
+          <div class="m"><div class="k">基础代谢 BMR</div><div class="v" id="oBmr">—</div><div class="x" id="oBmrX">静息消耗</div></div>
+          <div class="m"><div class="k">每日总消耗 TDEE</div><div class="v" id="oTdee">—</div><div class="x" id="oTdeeX">含活动</div></div>
+          <div class="m hl"><div class="k">方案摄入热量</div><div class="v" id="oIntake">—</div><div class="x" id="oIntakeX">三大营养素合计</div></div>
+          <div class="m"><div class="k">热量缺口</div><div class="v" id="oDef">—</div><div class="x" id="oDefX">TDEE − 摄入</div></div>
+          <div class="m"><div class="k">预计周降体重</div><div class="v" id="oLoss">—</div><div class="x">按 7700 kcal / kg 脂肪</div></div>
+          <div class="m"><div class="k">BMI</div><div class="v" id="oBmi">—</div><div class="x" id="oBmiX">体重 / 身高²</div></div>
+        </div>
+        <div class="banner" id="defBanner"></div>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><span class="num">03</span><h2>三大营养素目标</h2><span class="hint" id="macroTier"></span></div>
+
+        <div class="swrow">
+          <button class="sw" id="swMuscle" type="button" aria-label="保肌优先"></button>
+          <div class="swlabel"><b>保肌优先</b>蛋白拉到 2.0 g/kg 起；总热量上升、缺口收窄，适合减脂期不想掉肌肉</div>
+        </div>
+
+        <div class="stackbar" id="stack"></div>
+
+        <div class="mrow">
+          <div class="n"><i style="background:var(--carb)"></i>碳水</div>
+          <div class="f"><span id="carbPerKg">—</span> g/kg</div>
+          <div class="g"><span id="oCarb">—</span><small>g</small><em id="oCarbK">—</em></div>
+        </div>
+        <div class="mrow">
+          <div class="n"><i style="background:var(--prot)"></i>蛋白质</div>
+          <div class="f"><span id="protPerKg">—</span> g/kg</div>
+          <div class="g"><span id="oProt">—</span><small>g</small><em id="oProtK">—</em></div>
+        </div>
+        <div class="mrow">
+          <div class="n"><i style="background:var(--fat)"></i>脂肪</div>
+          <div class="f"><span id="fatPerKg">—</span> g/kg</div>
+          <div class="g"><span id="oFat">—</span><small>g</small><em id="oFatK">—</em></div>
+        </div>
+
+        <div class="macro-note" id="macroNote"></div>
+      </section>
+
+      <section class="panel coef">
+        <div class="ph"><span class="num">·</span><h2>系数速查</h2><span class="hint" id="coefGender">男</span></div>
+        <div class="coefwrap">
+          <div>
+            <table class="cotab">
+              <colgroup><col style="width:34%"><col style="width:22%"><col style="width:22%"><col style="width:22%"></colgroup>
+              <thead>
+                <tr><th>运动量</th><th>碳水</th><th>蛋白</th><th>脂肪</th></tr>
+              </thead>
+              <tbody id="coefBody"></tbody>
+            </table>
+            <p class="cotab-note">单位 g / kg 体重；高亮行即当前方案。活动系数按运动次数取 1.20 / 1.375 / 1.46 / 1.55 / 1.65 / 1.75。</p>
+          </div>
+          <div class="coefside">
+            <div class="csblock">
+              <div class="cs-t">四档怎么选</div>
+              <p>按一周实际训练总时长匹配，不按“我觉得练得不少”。每周 5 次但每次只有 30 分钟，落在 2–3 小时档。</p>
+            </div>
+            <div class="csblock">
+              <div class="cs-t">为什么碳水涨得最快</div>
+              <p>运动量越大，糖原消耗越多，碳水从 2.2 一路加到 3.5 g/kg；蛋白从 1.4 缓慢升到 1.8；脂肪基本固定在 0.8–1.1，不随运动量大幅变化。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><span class="num">04</span><h2>常用食物换算</h2><span class="hint">数量 × 单位 → 三大营养素</span></div>
+
+        <div class="tw">
+          <table id="foodTable">
+            <colgroup>
+              <col class="colc"><col class="colu"><col class="colq">
+              <col class="colp"><col class="colcb"><col class="colf">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>食物</th><th>单位</th><th>份数</th>
+                <th>蛋白 g</th><th>碳水 g</th><th>脂肪 / kcal</th>
+              </tr>
+            </thead>
+            <tbody id="foodBody"></tbody>
+            <tfoot>
+              <tr>
+                <td>合计</td><td>—</td><td id="tQty">—</td>
+                <td id="tP">—</td><td id="tC">—</td><td id="tF">—</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="footnote">食物克数按常见可食部估算（鸡腿去皮、米饭为熟重）。蔬菜、蓝莓按视频口径不计入；油与坚果默认 0，需要时自己加。</p>
+
+        <div class="cmp">
+          <div class="ph" style="margin-bottom:14px"><span class="num">05</span><h2>吃到的东西 vs 目标</h2></div>
+          <div class="cmprow">
+            <div class="cl">蛋白质</div>
+            <div class="cmpbar"><i id="barP" style="background:var(--prot)"></i><span class="tick" id="tickP"></span></div>
+            <div class="cv" id="cvP">—</div>
+          </div>
+          <div class="cmprow">
+            <div class="cl">碳水</div>
+            <div class="cmpbar"><i id="barC" style="background:var(--carb)"></i><span class="tick" id="tickC"></span></div>
+            <div class="cv" id="cvC">—</div>
+          </div>
+          <div class="cmprow">
+            <div class="cl">脂肪</div>
+            <div class="cmpbar"><i id="barF" style="background:var(--fat)"></i><span class="tick" id="tickF"></span></div>
+            <div class="cv" id="cvF">—</div>
+          </div>
+          <div class="cmprow">
+            <div class="cl">热量</div>
+            <div class="cmpbar"><i id="barK" style="background:var(--accent)"></i><span class="tick" id="tickK"></span></div>
+            <div class="cv" id="cvK">—</div>
+          </div>
+
+          <div class="gapbox" id="gapBox"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><span class="num">06</span><h2>补剂</h2><span class="hint">按需，非医嘱</span></div>
+
+        <div class="sgroup">
+          <div class="gt"><i></i>现在在补</div>
+          <div class="srow"><div class="nm">维生素 C</div><div class="ds">200–500 mg / 日</div><div class="tm">分 1–2 次，餐后</div></div>
+          <div class="srow"><div class="nm">Omega-3 鱼油 <span>看 EPA+DHA 总量</span></div><div class="ds">1.5–2 g / 日</div><div class="tm">随含脂餐</div></div>
+          <div class="srow"><div class="nm">辅酶 Q10 <span>脂溶性</span></div><div class="ds">100–200 mg / 日</div><div class="tm">随餐，别空腹</div></div>
+        </div>
+
+        <div class="sgroup later">
+          <div class="gt"><i></i>以后再加</div>
+          <div class="srow"><div class="nm">锌 Zn</div><div class="ds">10–15 mg / 日</div><div class="tm">避免与钙同服</div></div>
+          <div class="srow"><div class="nm">镁 Mg <span>甘氨酸镁更好吸收</span></div><div class="ds">200–300 mg / 日</div><div class="tm">睡前</div></div>
+          <div class="srow"><div class="nm">钙 Ca</div><div class="ds">500–800 mg / 日</div><div class="tm">分次，随餐</div></div>
+        </div>
+
+        <p class="snote">以上为常见膳食补充范围，不替代诊断与处方。在服药、有甲状腺 / 肾 / 心相关问题，或同时吃多种补剂时，先问医生或药师。高剂量锌会干扰铜吸收，锌镁钙不建议一次性同服。</p>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><span class="num">07</span><h2>执行规则</h2></div>
+        <div class="rules">
+          <ol>
+            <li>按算出的一天量<b>固定吃 7–10 天</b>，不要吃两天就改。</li>
+            <li>第 10 天拍一次对比图 + 称重；体重<b>降得太快</b>就加碳水，<b>降得太慢</b>就减碳水。</li>
+            <li>每 10 天用<b>新体重</b>重算一次营养素，不要一直用最初那组数字。</li>
+            <li>盐每天 <b>6–8 g</b>，1 g 钠 ≈ 2.5 g 盐，生抽老抽里都算进去。</li>
+            <li>蔬菜每餐 200–300 g 可自由吃；减脂不是减重，别只盯秤。</li>
+          </ol>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    计算口径：BMR 采用 Mifflin–St Jeor；TDEE = BMR × 活动系数（按每周运动次数取 1.20–1.75）；宏量系数按视频四档运动量线性取值，最高档以上为外推。所有结果为估算，个体差异、训练强度、NEAT 都会影响实际消耗，请以 10 天体重与围度趋势为准。
+  </footer>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const TIERS = [
+  {id:'t0', label:'几乎不运动', sub:'0 次 / 周', af:1.20, m:{c:2.0,p:1.4,f:0.8}, f:{c:1.8,p:1.4,f:0.9}, extra:true},
+  {id:'t2', label:'每周 2 次',  sub:'2–3 小时 / 周', af:1.375, m:{c:2.2,p:1.4,f:0.8}, f:{c:2.0,p:1.4,f:1.0}},
+  {id:'t3', label:'每周 3 次',  sub:'4–5 小时 / 周', af:1.46,  m:{c:2.5,p:1.6,f:0.9}, f:{c:2.2,p:1.6,f:1.1}},
+  {id:'t4', label:'每周 4 次',  sub:'6–7 小时 / 周', af:1.55,  m:{c:3.0,p:1.7,f:1.0}, f:{c:2.5,p:1.7,f:1.1}},
+  {id:'t5', label:'每周 5 次',  sub:'8–9 小时 / 周', af:1.65,  m:{c:3.5,p:1.8,f:1.0}, f:{c:3.0,p:1.8,f:1.2}},
+  {id:'t6', label:'每周 6 次以上', sub:'10 小时以上 / 周', af:1.75, m:{c:4.0,p:1.9,f:1.1}, f:{c:3.4,p:1.9,f:1.2}, extra:true}
+];
+
+const FOODS = [
+  {id:'leg',  name:'去皮卤鸡腿', unit:'1 只 ≈ 120g', p:24,   c:1,    f:8,    qty:1, opt:false},
+  {id:'oat',  name:'燕麦',      unit:'1 勺 = 50g',   p:6.5,  c:30,   f:3.5,  qty:2, opt:false},
+  {id:'egg',  name:'鸡蛋（全蛋）', unit:'1 个 ≈ 50g',  p:7,    c:0.6,  f:4,    qty:3, opt:false},
+  {id:'rice', name:'米饭（熟）',  unit:'1 碗 = 150g',  p:4,    c:39,   f:0.5,  qty:2, opt:false},
+  {id:'cabb', name:'娃娃菜',     unit:'1 碗 = 200g', p:3.5,  c:4.8,  f:0.3,  qty:1, opt:false},
+  {id:'whey', name:'蛋白粉',     unit:'1 勺 = 50g',  p:37.5, c:4,    f:1.5,  qty:1, opt:false},
+  {id:'oil',  name:'烹饪油',     unit:'1 勺 = 10g',  p:0,    c:0,    f:10,   qty:0, opt:true},
+  {id:'nut',  name:'混合坚果',   unit:'1 把 = 20g',  p:3.6,  c:3,    f:12,   qty:0, opt:true}
+];
+
+const state = { g:'m', w:82, h:183, a:18, tier:'t5', muscle:false, foods:{} };
+FOODS.forEach(f => state.foods[f.id] = f.qty);
+
+/* ================= 工具 ================= */
+const $ = id => document.getElementById(id);
+const nf = (n,d=0) => (isFinite(n) ? n.toLocaleString('zh-CN',{minimumFractionDigits:d, maximumFractionDigits:d}) : '—');
+
+/* ================= 渲染静态结构 ================= */
+function buildTiers(){
+  const box = $('tiers');
+  box.innerHTML = TIERS.map(t => `
+    <button class="tier ${t.id===state.tier?'on':''}" type="button" data-t="${t.id}">
+      <span class="dot"></span><span class="t">${t.label}</span><span class="s">${t.sub}</span>
+    </button>`).join('');
+}
+
+function buildFoods(){
+  const body = $('foodBody');
+  body.innerHTML = FOODS.map(f => `
+    <tr data-f="${f.id}" id="row-${f.id}">
+      <td><div class="fname">${f.name}${f.opt?'<span>可选，默认 0</span>':''}</div></td>
+      <td class="unitcell">${f.unit}</td>
+      <td>
+        <span class="qtybox">
+          <button type="button" data-step="-1" data-id="${f.id}">−</button>
+          <input type="number" min="0" max="30" step="0.5" value="${f.qty}" data-q="${f.id}">
+          <button type="button" data-step="1" data-id="${f.id}">+</button>
+        </span>
+      </td>
+      <td class="cp">—</td><td class="cc">—</td><td class="cf">—</td>
+    </tr>`).join('');
+}
+
+function renderCoef(){
+  $('coefGender').textContent = state.g === 'm' ? '男' : '女';
+  $('coefBody').innerHTML = TIERS.map(t => {
+    const c = state.g === 'm' ? t.m : t.f;
+    const nm = t.label.replace('每周 ', '').replace('几乎不运动', '不运动');
+    return '<tr class="' + (t.id === state.tier ? 'on' : '') + '">' +
+      '<td>' + nm + '</td><td>' + c.c.toFixed(1) + '</td>' +
+      '<td>' + c.p.toFixed(1) + '</td><td>' + c.f.toFixed(1) + '</td></tr>';
+  }).join('');
+}
+
+/* ================= 计算 ================= */
+function calc(){
+  const w = clamp(+state.w, 30, 220);
+  const h = clamp(+state.h, 120, 230);
+  const a = clamp(+state.a, 12, 90);
+  const tier = TIERS.find(t => t.id === state.tier) || TIERS[3];
+  const coef = state.g === 'm' ? tier.m : tier.f;
+
+  const bmr = 10*w + 6.25*h - 5*a + (state.g === 'm' ? 5 : -161);
+  const tdee = bmr * tier.af;
+
+  let carb = coef.c * w;
+  let prot = coef.p * w;
+  let fat  = coef.f * w;
+
+  if (state.muscle) prot = Math.max(prot, 2.0 * w);
+
+  const kcalC = carb*4, kcalP = prot*4, kcalF = fat*9;
+  const intake = kcalC + kcalP + kcalF;
+  const def = tdee - intake;
+
+  /* 食物合计 */
+  let fp=0, fc=0, ff=0;
+  FOODS.forEach(f => {
+    const q = state.foods[f.id] || 0;
+    fp += f.p*q; fc += f.c*q; ff += f.f*q;
+  });
+  const foodK = fp*4 + fc*4 + ff*9;
+
+  return {w,h,a,tier,bmr,tdee,carb,prot,fat,kcalC,kcalP,kcalF,intake,def,fp,fc,ff,foodK,
+          carbPct: intake? kcalC/intake:0, protPct: intake? kcalP/intake:0, fatPct: intake? kcalF/intake:0};
+}
+
+function clamp(v, lo, hi){ return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo; }
+
+/* ================= 更新界面 ================= */
+function render(){
+  const r = calc();
+  const w = r.w;
+
+  /* 重算闪烁提示 */
+  const em = $('energyMetrics');
+  em.classList.remove('flash'); void em.offsetWidth; em.classList.add('flash');
+
+  /* 能量 */
+  $('oBmr').innerHTML = nf(r.bmr) + '<small>kcal</small>';
+  $('oTdee').innerHTML = nf(r.tdee) + '<small>kcal</small>';
+  $('oIntake').innerHTML = nf(r.intake) + '<small>kcal</small>';
+  $('oDef').innerHTML = (r.def>=0?'<span style="color:var(--good)">−</span>':'<span style="color:var(--bad)">+</span>') + nf(Math.abs(r.def)) + '<small>kcal</small>';
+
+  const loss = r.def*7/7700;
+  $('oLoss').innerHTML = (loss>=0? nf(loss,2): '0') + '<small>kg</small>';
+
+  const bmi = r.w/Math.pow(r.h/100,2);
+  $('oBmi').textContent = nf(bmi,1);
+
+  $('oBmrX').textContent = state.g==='m' ? '10w+6.25h−5a+5' : '10w+6.25h−5a−161';
+  $('oTdeeX').textContent = 'BMR × ' + r.tier.af.toFixed(3) + '（' + r.tier.label + '）';
+  $('oIntakeX').textContent = 'C' + nf(r.carb) + ' P' + nf(r.prot) + ' F' + nf(r.fat);
+  $('oDefX').textContent = r.def>=0 ? '目标 300–500 kcal' : '热量盈余，不利于减脂';
+  $('oBmiX').textContent = bmi<18.5?'偏低':(bmi<24?'正常范围':(bmi<28?'偏高':'偏高较多'));
+
+  /* 缺口判读：按占 TDEE 的比例 */
+  const ratio = r.tdee ? r.def / r.tdee : 0;
+  let banner = '', color = 'var(--accent)';
+  if (r.def < 0){
+    banner = '<b>当前方案是盈余 ' + nf(Math.abs(r.def)) + ' kcal。</b>碳水或运动量给得偏大，减脂期一般不需要盈余；想掉脂就把碳水往下调 30–60 g。';
+    color = 'var(--bad)';
+  } else if (ratio < 0.08){
+    banner = '<b>缺口 ' + nf(r.def) + ' kcal（占消耗 ' + nf(ratio*100,1) + '%），偏保守。</b>接近维持热量，属于身体重组区间：脂肪掉得慢，但训练表现和肌肉最安全。';
+    color = 'var(--warn)';
+  } else if (ratio <= 0.22){
+    banner = '<b>缺口 ' + nf(r.def) + ' kcal（占消耗 ' + nf(ratio*100,1) + '%），合理区间。</b>每周约降 ' + nf(loss,2) + ' kg（' + nf(loss/r.w*100,2) + '% 体重），速度与保肌兼顾。';
+    color = 'var(--good)';
+  } else if (ratio <= 0.28){
+    banner = '<b>缺口 ' + nf(r.def) + ' kcal（占消耗 ' + nf(ratio*100,1) + '%），偏快。</b>已经接近激进边缘，先观察 10 天内力量有没有掉；掉了就把碳水加回 30–50 g。';
+    color = 'var(--warn)';
+  } else {
+    banner = '<b>缺口 ' + nf(r.def) + ' kcal（占消耗 ' + nf(ratio*100,1) + '%），偏激进。</b>瘦体重流失风险明显上升，力量的下降会比体重下降更早出现。建议把碳水加回 40–80 g，或把这档运动量当成日常而非额外训练。';
+    color = 'var(--bad)';
+  }
+  $('defBanner').innerHTML = banner;
+  $('defBanner').style.borderLeftColor = color;
+
+  /* 宏量 */
+  $('macroTier').textContent = r.tier.label + (r.tier.extra ? '（外推档）' : '');
+  $('oCarb').textContent = nf(r.carb);
+  $('oProt').textContent = nf(r.prot);
+  $('oFat').textContent  = nf(r.fat);
+  $('oCarbK').textContent = nf(r.kcalC) + ' kcal · ' + nf(r.carbPct*100) + '%';
+  $('oProtK').textContent = nf(r.kcalP) + ' kcal · ' + nf(r.protPct*100) + '%';
+  $('oFatK').textContent  = nf(r.kcalF) + ' kcal · ' + nf(r.fatPct*100) + '%';
+  $('carbPerKg').textContent = (r.carb/w).toFixed(1);
+  $('protPerKg').textContent = (r.prot/w).toFixed(1);
+  $('fatPerKg').textContent  = (r.fat/w).toFixed(1);
+
+  $('stack').innerHTML =
+    '<span style="width:' + (r.carbPct*100) + '%;background:var(--carb)"></span>' +
+    '<span style="width:' + (r.protPct*100) + '%;background:var(--prot)"></span>' +
+    '<span style="width:' + (r.fatPct*100) + '%;background:var(--fat)"></span>';
+
+  /* 宏量提示 */
+  const notes = [];
+  if (state.muscle) notes.push('已切到保肌模式：蛋白 ' + (r.prot/w).toFixed(2) + ' g/kg，比视频原方案高 ' + nf(r.prot - (state.g==='m'?r.tier.m.p:r.tier.f.p)*w) + ' g，缺口因此收窄。');
+  if ((r.prot/w) < 1.85) notes.push('当前蛋白 ' + (r.prot/w).toFixed(2) + ' g/kg，对减脂期保肌偏保守。常见区间 1.8–2.2 g/kg；想更稳，可用蛋白粉或鸡胸补到 2.0。');
+  if ((r.fat/w) < 0.8) notes.push('脂肪低于 0.8 g/kg，长期会压制睾酮与激素合成，建议守住底线。');
+  if (r.fatPct*100 > 35) notes.push('脂肪供能占比超过 35%，碳水被挤占，力量训练日的糖原会不够。');
+  if (!notes.length) notes.push('三项配比正常：碳水供能主导、蛋白达标、脂肪在 0.8 g/kg 以上。');
+  $('macroNote').innerHTML = notes.join('<br>');
+
+  /* 食物行 */
+  FOODS.forEach(f => {
+    const q = state.foods[f.id] || 0;
+    const row = $('row-'+f.id);
+    if (!row) return;
+    row.classList.toggle('zero', q === 0);
+    row.querySelector('.cp').textContent = nf(f.p*q, 1);
+    row.querySelector('.cc').textContent = nf(f.c*q, 1);
+    row.querySelector('.cf').textContent = nf(f.f*q, 1) + ' · ' + nf(f.p*q*4 + f.c*q*4 + f.f*q*9);
+    const inp = row.querySelector('input');
+    if (inp.value != q) inp.value = q;
+  });
+
+  let totalQty = 0;
+  FOODS.forEach(f => totalQty += (state.foods[f.id] || 0));
+  $('tQty').textContent = nf(totalQty, totalQty%1?1:0) + ' 份';
+  $('tP').textContent = nf(r.fp,1);
+  $('tC').textContent = nf(r.fc,1);
+  $('tF').textContent = nf(r.ff,1) + ' · ' + nf(r.foodK);
+
+  /* 对比 */
+  setCmp('P', r.fp, r.prot, 'g');
+  setCmp('C', r.fc, r.carb, 'g');
+  setCmp('F', r.ff, r.fat, 'g');
+  setCmp('K', r.foodK, r.intake, 'kcal');
+
+  /* 差额建议 */
+  $('gapBox').innerHTML = gapHTML(r);
+
+  renderCoef();
+  saveState();
+}
+
+function setCmp(key, val, target, unit){
+  const pct = target ? Math.min(160, val/target*100) : 0;
+  $('bar'+key).style.width = pct + '%';
+  $('bar'+key).style.background = val > target*1.02
+      ? (key==='K' ? 'var(--bad)' : 'var(--bad)')
+      : (key==='K' ? 'var(--accent)' : getComputedStyle(document.documentElement).getPropertyValue('--'+({P:'prot',C:'carb',F:'fat'})[key]));
+  $('tick'+key).style.left = 'calc(100% - 1px)';
+  const diff = val - target;
+  $('cv'+key).innerHTML = '<b>' + nf(val) + '</b> / ' + nf(target) + ' ' + unit +
+    '<br><span style="color:' + (diff>=0?'var(--good)':'var(--warn)') + ';font-size:11px">' + (diff>=0?'+':'') + nf(diff) + '</span>';
+}
+
+function gapHTML(r){
+  const rows = [];
+  const dP = r.prot - r.fp, dC = r.carb - r.fc, dF = r.fat - r.ff, dK = r.intake - r.foodK;
+
+  if (dP > 1) rows.push('蛋白还差 <strong>' + nf(dP) + ' g</strong> → 鸡胸约 ' + nf(dP/0.24) + ' g，或蛋白粉 ' + nf(dP/0.75) + ' g，或鸡蛋 ' + nf(dP/7,1) + ' 个。');
+  else if (dP < -2) rows.push('蛋白超了 <strong>' + nf(-dP) + ' g</strong>，可减蛋白粉约 ' + nf(-dP/0.75) + ' g。');
+
+  if (dC > 3) rows.push('碳水还差 <strong>' + nf(dC) + ' g</strong> → 米饭约 ' + nf(dC/0.26) + ' g（熟），燕麦 ' + nf(dC/0.6) + ' g，或红薯 ' + nf(dC/0.22) + ' g。');
+  else if (dC < -3) rows.push('碳水超了 <strong>' + nf(-dC) + ' g</strong>，先减米饭约 ' + nf(-dC/0.26) + ' g。');
+
+  if (dF > 1.5) rows.push('脂肪还差 <strong>' + nf(dF) + ' g</strong> → 烹饪油 ' + nf(dF) + ' g，或坚果 ' + nf(dF/0.6) + ' g。');
+  else if (dF < -1.5) rows.push('脂肪超了 <strong>' + nf(-dF) + ' g</strong>，注意卤味和蛋黄的隐性油。');
+
+  const head = '<div class="gt">补齐到今日目标</div>';
+  if (!rows.length) return head + '<div>当前这一组食物基本踩在目标线上，热量差 <strong>' + nf(dK) + ' kcal</strong>，可以按这个样子吃。</div>';
+
+  return head + rows.map(x => '<div>· ' + x + '</div>').join('') +
+    '<div style="margin-top:6px;color:var(--dim);font-size:11.5px">热量合计差 <strong>' + nf(dK) + ' kcal</strong>（'+ (dK>=0?'还差':'超出') +'）。</div>';
+}
+
+/* ================= 事件 ================= */
+$('genderSeg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-g]');
+  if (!b) return;
+  state.g = b.dataset.g;
+  [...$('genderSeg').children].forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+
+$('tiers').addEventListener('click', e => {
+  const b = e.target.closest('.tier');
+  if (!b) return;
+  state.tier = b.dataset.t;
+  [...$('tiers').children].forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+
+['inW','inH','inA'].forEach(id => {
+  const sync = () => {
+    const k = id === 'inW' ? 'w' : (id === 'inH' ? 'h' : 'a');
+    state[k] = $(id).value;
+    render();
+  };
+  $(id).addEventListener('input', sync);
+  $(id).addEventListener('change', sync);
+  $(id).addEventListener('keyup', e => { if (e.key !== 'Enter') sync(); });
+  $(id).addEventListener('blur', () => {
+    const k = id === 'inW' ? 'w' : (id === 'inH' ? 'h' : 'a');
+    const lim = k === 'w' ? [30,220] : (k === 'h' ? [120,230] : [12,90]);
+    state[k] = clamp(+state[k], lim[0], lim[1]);
+    $(id).value = state[k];
+    render();
+  });
+});
+
+$('swMuscle').addEventListener('click', () => {
+  state.muscle = !state.muscle;
+  $('swMuscle').classList.toggle('on', state.muscle);
+  render();
+});
+
+$('foodBody').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-step]');
+  if (!btn) return;
+  const id = btn.dataset.id, step = +btn.dataset.step;
+  state.foods[id] = clamp((state.foods[id] || 0) + step, 0, 30);
+  render();
+});
+
+$('foodBody').addEventListener('input', e => {
+  const inp = e.target.closest('input[data-q]');
+  if (!inp) return;
+  state.foods[inp.dataset.q] = clamp(+inp.value || 0, 0, 30);
+  render();
+});
+
+/* ================= 本地保存 ================= */
+function saveState(){
+  try{
+    localStorage.setItem('cutcalc_v1', JSON.stringify(state));
+  }catch(err){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem('cutcalc_v1');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.g === 'm' || s.g === 'f') state.g = s.g;
+    if (isFinite(+s.w)) state.w = +s.w;
+    if (isFinite(+s.h)) state.h = +s.h;
+    if (isFinite(+s.a)) state.a = +s.a;
+    if (TIERS.some(t => t.id === s.tier)) state.tier = s.tier;
+    state.muscle = !!s.muscle;
+    if (s.foods) FOODS.forEach(f => { if (isFinite(+s.foods[f.id])) state.foods[f.id] = clamp(+s.foods[f.id],0,30); });
+  }catch(err){}
+}
+
+/* ================= 初始化 ================= */
+loadState();
+buildTiers();
+buildFoods();
+$('inW').value = state.w;
+$('inH').value = state.h;
+$('inA').value = state.a;
+[...$('genderSeg').children].forEach(x => x.classList.toggle('on', x.dataset.g === state.g));
+$('swMuscle').classList.toggle('on', state.muscle);
+render();
+</script>
+</body>
+</html>
